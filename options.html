@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Настройки Канцелярит</title>
+  <style>
+    body { font-family: Arial, sans-serif; padding: 20px; min-width: 320px; }
+    label { display: block; margin-bottom: 10px; font-weight: bold; }
+    input { width: 100%; max-width: 400px; padding: 6px; margin-bottom: 10px; }
+    button { padding: 6px 16px; cursor: pointer; }
+    #status { margin-top: 10px; color: green; }
+  </style>
+</head>
+<body>
+  <h2>Настройки API ключа Google Gemini</h2>
+  <label for="apiKey">Ваш API ключ:</label>
+  <input type="password" id="apiKey" placeholder="AIza..." />
+  <button id="saveBtn">Сохранить</button>
+  <div id="status"></div>
+  <script src="options.js"></script>
+</body>
+</html>
