@@ -2,21 +2,201 @@
 <html>
 <head>
   <meta charset="utf-8">
-  <title>Настройки Канцелярит</title>
+  <title>Настройки Text Polisher</title>
   <style>
-    body { font-family: Arial, sans-serif; padding: 20px; min-width: 320px; }
-    label { display: block; margin-bottom: 10px; font-weight: bold; }
-    input { width: 100%; max-width: 400px; padding: 6px; margin-bottom: 10px; }
-    button { padding: 6px 16px; cursor: pointer; }
-    #status { margin-top: 10px; color: green; }
+    * { box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      padding: 30px;
+      max-width: 720px;
+      margin: 0 auto;
+      background: #f5f5f7;
+      color: #1d1d1f;
+      transition: background 0.3s, color 0.3s;
+      line-height: 1.4;
+      -webkit-font-smoothing: antialiased;
+    }
+    .tabs { display: flex; gap: 0; margin-bottom: 24px; }
+    .tab-btn {
+      background: transparent;
+      border: none;
+      padding: 8px 20px;
+      cursor: pointer;
+      font-weight: 500;
+      font-size: 14px;
+      color: #86868b;
+      border-radius: 8px 8px 0 0;
+      transition: color 0.2s, background 0.2s;
+    }
+    .tab-btn:hover {
+      background: rgba(0,0,0,0.04);
+      color: #1d1d1f;
+    }
+    .tab-btn.active {
+      color: #007aff;
+      background: rgba(255,255,255,0.9);
+      backdrop-filter: blur(20px);
+      border-bottom: 2px solid #007aff;
+    }
+    .tab-content { display: none; }
+    .tab-content.active { display: block; animation: fadeIn 0.2s ease; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
+    .section {
+      background: rgba(255,255,255,0.85);
+      backdrop-filter: blur(25px);
+      border-radius: 12px;
+      padding: 20px;
+      margin-bottom: 16px;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.06), 0 0 0 0.5px rgba(0,0,0,0.04);
+      transition: background 0.3s, box-shadow 0.3s;
+    }
+    label { display: block; margin-bottom: 6px; font-weight: 500; font-size: 13px; color: #6e6e73; }
+    .toggle-label { display: flex; align-items: center; gap: 10px; font-weight: 500; cursor: pointer; }
+    .toggle-switch { position: relative; width: 38px; height: 22px; flex-shrink: 0; }
+    .toggle-switch input { opacity: 0; width: 0; height: 0; position: absolute; }
+    .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #e0e0e5; transition: 0.25s; border-radius: 22px; }
+    .slider:before { position: absolute; content: ""; height: 18px; width: 18px; left: 2px; bottom: 2px; background-color: white; transition: 0.25s; border-radius: 50%; box-shadow: 0 1px 3px rgba(0,0,0,0.15); }
+    input:checked + .slider { background-color: #34c759; }
+    input:checked + .slider:before { transform: translateX(16px); }
+    select, input[type="text"], input[type="password"], input[type="search"] {
+      width: 100%; padding: 10px 12px; margin-bottom: 10px;
+      border: 1px solid #d2d2d7; border-radius: 8px; background: #fff; color: #1d1d1f;
+      font-size: 14px; transition: all 0.15s; box-shadow: inset 0 1px 3px rgba(0,0,0,0.02);
+    }
+    select:focus, input:focus { outline: none; border-color: #007aff; box-shadow: 0 0 0 3px rgba(0,122,255,0.15); }
+    button {
+      background: #007aff; color: white; border: none; padding: 8px 18px; border-radius: 8px;
+      cursor: pointer; font-size: 13px; font-weight: 500; margin-right: 8px; margin-bottom: 8px;
+      transition: all 0.2s; display: inline-flex; align-items: center; gap: 4px;
+    }
+    button:hover { background: #0062cc; }
+    button.secondary { background: #e5e5ea; color: #1d1d1f; }
+    button.secondary:hover { background: #d5d5db; }
+    button.danger { background: #ff3b30; }
+    button.danger:hover { background: #e0352b; }
+    .status-message { margin-top: 6px; font-weight: 500; font-size: 12px; min-height: 16px; opacity: 0; transition: opacity 0.25s; }
+    .status-message.visible { opacity: 1; }
+    .help-text { font-size: 12px; color: #86868b; margin-top: 4px; }
+    .help-text a { color: #007aff; text-decoration: none; }
+    .shortcut { background: #e5e5ea; padding: 2px 6px; border-radius: 4px; font-family: monospace; font-size: 12px; }
+    .row { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; margin-bottom: 2px; }
+    .history-item { border-bottom: 1px solid #e5e5ea; padding: 10px 0; font-size: 13px; display: flex; align-items: flex-start; gap: 8px; }
+    .history-item:last-child { border-bottom: none; }
+    .history-meta { font-size: 11px; color: #86868b; margin-bottom: 2px; }
+    .history-content { flex: 1; }
+    .favorite-btn { background: none; border: none; cursor: pointer; font-size: 16px; padding: 0; margin: 0; color: #ccc; transition: color 0.2s; }
+    .favorite-btn.active { color: #f5a623; }
+    .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    @media (prefers-color-scheme: dark) {
+      body { background: #1e1e1e; color: #f5f5f7; }
+      .tab-btn { color: #98989d; }
+      .tab-btn:hover { background: rgba(255,255,255,0.08); color: #e0e0e0; }
+      .tab-btn.active { color: #0a84ff; background: rgba(44,44,46,0.9); border-color: #0a84ff; }
+      .section { background: rgba(44,44,46,0.9); backdrop-filter: blur(25px); box-shadow: 0 2px 12px rgba(0,0,0,0.3), 0 0 0 0.5px rgba(255,255,255,0.08); }
+      label { color: #98989d; }
+      select, input { background: #1c1c1e; border-color: #3a3a3c; color: #f5f5f7; }
+      .help-text { color: #98989d; }
+      .shortcut { background: #3a3a3c; color: #d1d1d6; }
+      .history-item { border-color: #3a3a3c; }
+      button.secondary { background: #3a3a3c; color: #f5f5f7; }
+      button.secondary:hover { background: #4a4a4c; }
+    }
   </style>
 </head>
 <body>
-  <h2>Настройки API ключа Google Gemini</h2>
-  <label for="apiKey">Ваш API ключ:</label>
-  <input type="password" id="apiKey" placeholder="AIza..." />
-  <button id="saveBtn">Сохранить</button>
-  <div id="status"></div>
+  <div class="tabs">
+    <button class="tab-btn active" data-tab="settingsTab">Настройки</button>
+    <button class="tab-btn" data-tab="historyTab">История</button>
+    <button class="tab-btn" data-tab="statsTab">Статистика</button>
+  </div>
+
+  <!-- Настройки -->
+  <div id="settingsTab" class="tab-content active">
+    <div class="section">
+      <label>AI-сервис</label>
+      <select id="provider">
+        <option value="groq">Groq</option>
+        <option value="openai">OpenAI</option>
+        <option value="deepseek">DeepSeek</option>
+        <option value="gemini">Gemini</option>
+      </select>
+    </div>
+    <div class="section">
+      <label>API ключ</label>
+      <input type="password" id="apiKey" placeholder="Вставьте ключ" style="margin-bottom: 8px;" />
+      <div class="row">
+        <button id="saveBtn">Сохранить</button>
+        <button id="clearKeyBtn" class="danger">Очистить</button>
+        <button id="testConnBtn" class="secondary">
+          <span id="testConnText">Проверить соединение</span>
+          <span id="testConnSpinner" style="display:none;" class="spinner"></span>
+        </button>
+      </div>
+      <div id="apiStatus" class="status-message" style="color:#34c759;"></div>
+      <div class="help-text">Получить ключ: <a href="https://console.groq.com/keys" target="_blank">Groq</a> · <a href="https://platform.openai.com/api-keys" target="_blank">OpenAI</a> · <a href="https://platform.deepseek.com/api_keys" target="_blank">DeepSeek</a> · <a href="https://makersuite.google.com/app/apikey" target="_blank">Gemini</a></div>
+    </div>
+    <div class="section">
+      <label>Стиль</label>
+      <select id="style" style="margin-bottom:8px;">
+        <option value="corporate">Корпоративный</option>
+        <option value="neutral">Нейтральный</option>
+        <option value="friendly">Дружеский</option>
+        <option value="concise">Лаконичный</option>
+        <option value="persuasive">Убедительный</option>
+      </select>
+      <button id="saveStyleBtn">Сохранить стиль</button>
+      <div id="styleStatus" class="status-message" style="color:#34c759;"></div>
+    </div>
+    <div class="section">
+      <label class="toggle-label">
+        Сохранять историю
+        <span class="toggle-switch"><input type="checkbox" id="historyEnabled" checked><span class="slider"></span></span>
+      </label>
+    </div>
+    <div class="section">
+      <label class="toggle-label">
+        Звуковой сигнал при завершении
+        <span class="toggle-switch"><input type="checkbox" id="soundEnabled" checked><span class="slider"></span></span>
+      </label>
+    </div>
+    <div class="section">
+      <strong>Как использовать</strong>
+      <ul style="margin:8px 0 0 0;padding-left:18px;font-size:13px;line-height:1.6;">
+        <li>Выделите текст в поле ввода.</li>
+        <li>Плавающая кнопка или правая кнопка мыши → «Перефразировать».</li>
+        <li>Горячие клавиши: <span class="shortcut">Ctrl+Shift+P</span> (Mac: <span class="shortcut">⌘⇧P</span>).</li>
+        <li>Отмена: <span class="shortcut">Ctrl+Shift+Z</span> (Mac: <span class="shortcut">⌘⇧Z</span>).</li>
+      </ul>
+      <div class="help-text">Изменить клавиши: <span class="shortcut">chrome://extensions/shortcuts</span></div>
+    </div>
+    <div class="section">
+      <button id="feedbackBtn" class="secondary">Обратная связь (GitHub)</button>
+    </div>
+  </div>
+
+  <!-- История -->
+  <div id="historyTab" class="tab-content">
+    <div class="section">
+      <div class="row" style="justify-content: space-between;">
+        <input type="search" id="historySearch" placeholder="Поиск по истории..." style="width:200px;">
+        <div>
+          <button id="exportCSVBtn" class="secondary">Экспорт CSV</button>
+          <button id="exportJSONBtn" class="secondary">Экспорт JSON</button>
+          <button id="clearHistoryBtn" class="secondary">Очистить</button>
+        </div>
+      </div>
+      <div id="historyList"></div>
+    </div>
+  </div>
+
+  <!-- Статистика -->
+  <div id="statsTab" class="tab-content">
+    <div class="section">
+      <h3>Статистика использования</h3>
+      <div id="statsContainer"></div>
+    </div>
+  </div>
+
   <script src="options.js"></script>
 </body>
 </html>

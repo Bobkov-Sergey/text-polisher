@@ -1,8 +1,8 @@
 {
-  "manifest_version": 1,
+  "manifest_version": 3,
   "name": "Text Polisher",
-  "version": "1.0",
-  "description": "Перефразирует выделенный текст в корпоративном (официальном) стиле через Groq (бесплатно).",
+  "version": "2.0",
+  "description": "Перефразирует выделенный текст в выбранном стиле. Плавающая кнопка, предпросмотр по Ctrl, история, статистика.",
   "permissions": [
     "contextMenus",
     "storage",
@@ -13,13 +13,44 @@
   "background": {
     "service_worker": "background.js"
   },
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": ["content.js"],
+      "all_frames": true
+    }
+  ],
   "options_ui": {
     "page": "options.html",
-    "open_in_tab": false
+    "open_in_tab": true
+  },
+  "action": {
+    "default_popup": "popup.html",
+    "default_icon": {
+      "16": "icon16.png",
+      "48": "icon48.png",
+      "128": "icon128.png"
+    }
   },
   "icons": {
     "16": "icon16.png",
     "48": "icon48.png",
     "128": "icon128.png"
+  },
+  "commands": {
+    "rephrase": {
+      "suggested_key": {
+        "default": "Ctrl+Shift+P",
+        "mac": "Command+Shift+P"
+      },
+      "description": "Перефразировать выделенный текст"
+    },
+    "undo": {
+      "suggested_key": {
+        "default": "Ctrl+Shift+Z",
+        "mac": "Command+Shift+Z"
+      },
+      "description": "Отменить последнюю замену"
+    }
   }
 }
