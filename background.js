@@ -1,6 +1,5 @@
 const MENU_ID = "rephrase-text";
 
-// Стили
 const STYLES = {
   corporate: "Ты профессиональный редактор. Перефразируй следующий текст в корпоративном официальном стиле, строго сохраняя его исходный смысл. НЕ добавляй новых идей, не предлагай решений, не комментируй. Отвечай ТОЛЬКО перефразированным текстом без кавычек, пояснений и дополнительной информации.",
   neutral: "Ты профессиональный редактор. Перефразируй следующий текст в нейтральном, спокойном стиле, избегая крайностей, строго сохраняя его исходный смысл. НЕ добавляй новых идей, не предлагай решений, не комментируй. Отвечай ТОЛЬКО перефразированным текстом без кавычек, пояснений и дополнительной информации.",
@@ -59,7 +58,6 @@ const PROVIDERS = {
   }
 };
 
-// ---------- Утилиты ----------
 async function getSettings() {
   const res = await chrome.storage.sync.get(["provider", "apiKey", "style", "soundEnabled"]);
   return {
@@ -70,7 +68,6 @@ async function getSettings() {
   };
 }
 
-// Безопасное обновление контекстного меню (создаст, если нет)
 async function ensureContextMenu() {
   try {
     const { style } = await getSettings();
@@ -84,12 +81,9 @@ async function ensureContextMenu() {
         });
       }
     });
-  } catch (e) {
-    // Игнорируем ошибки при старте, меню может быть уже создано
-  }
+  } catch (e) {}
 }
 
-// ---------- Жизненный цикл ----------
 chrome.runtime.onInstalled.addListener(() => {
   ensureContextMenu();
   chrome.action.setBadgeBackgroundColor({ color: "#007aff" });
@@ -101,27 +95,22 @@ chrome.runtime.onStartup.addListener(() => {
   updateDailyBadge();
 });
 
-// Обновление меню при изменении стиля/провайдера
 chrome.storage.onChanged.addListener((changes, area) => {
   if (area === "sync" && (changes.style || changes.provider)) {
     ensureContextMenu();
   }
 });
 
-// Обработчик кнопок уведомлений
 chrome.notifications.onButtonClicked.addListener((notificationId, buttonIndex) => {
   if (notificationId === "missing-api-key" && buttonIndex === 0) {
     chrome.runtime.openOptionsPage();
   }
 });
 
-// ---------- Коммуникация с content script ----------
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   if (request.action === "rephrase") {
-    processText(request.text, sender.tab.id, (err, result) => {
-      if (err) sendResponse({ success: false, error: err.message });
-      else sendResponse({ success: true, text: result });
-    });
+    // Вызов из контент-скрипта – возвращаем результат без scripting.executeScript
+    processTextForContentScript(request.text, sender.tab.id, sendResponse);
     return true;
   }
   if (request.action === "preview") {
@@ -131,33 +120,26 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     return true;
   }
   if (request.action === "showProgress") {
-    chrome.scripting.executeScript({
-      target: { tabId: sender.tab.id },
-      func: (visible) => {
-        window.postMessage({ type: "TEXT_POLISHER_PROGRESS", visible }, "*");
-      },
-      args: [request.visible]
-    });
+    chrome.tabs.sendMessage(sender.tab.id, { action: "showProgress", visible: request.visible }).catch(() => {});
   }
 });
 
-// Контекстное меню
 chrome.contextMenus.onClicked.addListener((info, tab) => {
   if (info.menuItemId === MENU_ID && info.selectionText) {
     const text = info.selectionText.trim();
     if (!text) return;
-    processText(text, tab.id);
+    // Для контекстного меню – используем scripting (разрешение активно)
+    processTextWithScripting(text, tab.id);
   }
 });
 
-// Горячие клавиши
 chrome.commands.onCommand.addListener((command, tab) => {
   if (command === "rephrase") {
     chrome.scripting.executeScript(
       { target: { tabId: tab.id }, func: () => window.getSelection()?.toString() || "" },
       (results) => {
         const text = (results?.[0]?.result || "").trim();
-        if (text) processText(text, tab.id);
+        if (text) processTextWithScripting(text, tab.id);
         else {
           chrome.notifications.create({
             type: "basic", iconUrl: "icon48.png",
@@ -199,8 +181,8 @@ chrome.commands.onCommand.addListener((command, tab) => {
   }
 });
 
-// ---------- Основная логика перефразирования ----------
-async function processText(text, tabId, callback) {
+// Версия для контент-скрипта: возвращает результат через sendResponse
+async function processTextForContentScript(text, tabId, sendResponse) {
   const settings = await getSettings();
   if (!settings.apiKey) {
     chrome.notifications.create("missing-api-key", {
@@ -211,16 +193,78 @@ async function processText(text, tabId, callback) {
       requireInteraction: true
     });
     chrome.runtime.openOptionsPage();
-    if (callback) callback(new Error("API key missing"));
+    sendResponse({ success: false, error: "API key missing" });
     return;
   }
 
   const stylePrompt = STYLES[settings.style] || STYLES.corporate;
   const provider = PROVIDERS[settings.provider];
   if (!provider) {
-    if (callback) callback(new Error("Unknown provider"));
+    sendResponse({ success: false, error: "Unknown provider" });
     return;
   }
+
+  // Включаем прогресс-бар
+  chrome.tabs.sendMessage(tabId, { action: "showProgress", visible: true }).catch(() => {});
+
+  try {
+    const url = provider.buildUrl ? provider.buildUrl(settings.apiKey) : provider.url;
+    const response = await fetch(url, {
+      method: "POST",
+      headers: provider.headers ? provider.headers(settings.apiKey) : provider.headers(),
+      body: JSON.stringify(provider.buildBody(text, stylePrompt))
+    });
+
+    if (!response.ok) {
+      const errData = await response.json();
+      throw new Error(`API error: ${response.status} ${errData?.error?.message || response.statusText}`);
+    }
+
+    const data = await response.json();
+    const rephrased = provider.parseResponse(data);
+
+    // Отправляем результат обратно в контент-скрипт
+    sendResponse({
+      success: true,
+      text: rephrased,
+      playSound: settings.soundEnabled
+    });
+
+    // Сохраняем в историю и обновляем статистику
+    saveToHistory(text, rephrased, settings.provider);
+    updateStatistics(settings.provider, settings.style);
+
+  } catch (error) {
+    console.error("Rephrase error:", error);
+    chrome.notifications.create({
+      type: "basic", iconUrl: "icon48.png",
+      title: "Ошибка перефразирования",
+      message: error.message || "Не удалось выполнить запрос."
+    });
+    sendResponse({ success: false, error: error.message });
+  } finally {
+    chrome.tabs.sendMessage(tabId, { action: "showProgress", visible: false }).catch(() => {});
+  }
+}
+
+// Версия для контекстного меню и горячих клавиш (с scripting)
+async function processTextWithScripting(text, tabId) {
+  const settings = await getSettings();
+  if (!settings.apiKey) {
+    chrome.notifications.create("missing-api-key", {
+      type: "basic", iconUrl: "icon48.png",
+      title: "API ключ не указан",
+      message: "Для работы расширения необходимо добавить API ключ в настройках.",
+      buttons: [{ title: "Открыть настройки" }],
+      requireInteraction: true
+    });
+    chrome.runtime.openOptionsPage();
+    return;
+  }
+
+  const stylePrompt = STYLES[settings.style] || STYLES.corporate;
+  const provider = PROVIDERS[settings.provider];
+  if (!provider) return;
 
   chrome.tabs.sendMessage(tabId, { action: "showProgress", visible: true }).catch(() => {});
 
@@ -240,12 +284,10 @@ async function processText(text, tabId, callback) {
     const data = await response.json();
     const rephrased = provider.parseResponse(data);
 
+    // Сохраняем оригинал и заменяем текст через scripting
     await chrome.scripting.executeScript({
       target: { tabId: tabId },
-      func: () => {
-        const sel = window.getSelection();
-        window._textPolisherOriginal = sel ? sel.toString() : "";
-      }
+      func: () => { const sel = window.getSelection(); window._textPolisherOriginal = sel ? sel.toString() : ""; }
     });
 
     await chrome.scripting.executeScript({
@@ -260,16 +302,11 @@ async function processText(text, tabId, callback) {
     });
 
     if (settings.soundEnabled) {
-      chrome.scripting.executeScript({
-        target: { tabId: tabId },
-        func: playCompletionSound
-      });
+      chrome.scripting.executeScript({ target: { tabId: tabId }, func: playCompletionSound });
     }
 
     saveToHistory(text, rephrased, settings.provider);
     updateStatistics(settings.provider, settings.style);
-
-    if (callback) callback(null, rephrased);
 
   } catch (error) {
     console.error("Rephrase error:", error);
@@ -278,7 +315,6 @@ async function processText(text, tabId, callback) {
       title: "Ошибка перефразирования",
       message: error.message || "Не удалось выполнить запрос."
     });
-    if (callback) callback(error);
   } finally {
     chrome.tabs.sendMessage(tabId, { action: "showProgress", visible: false }).catch(() => {});
   }
@@ -345,11 +381,7 @@ async function saveToHistory(original, rephrased, provider) {
   const { historyEnabled } = await chrome.storage.sync.get(["historyEnabled"]);
   if (historyEnabled === false) return;
   const { history = [] } = await chrome.storage.local.get(["history"]);
-  history.unshift({
-    original, rephrased, provider,
-    timestamp: Date.now(),
-    isFavorite: false
-  });
+  history.unshift({ original, rephrased, provider, timestamp: Date.now(), isFavorite: false });
   if (history.length > 100) history.length = 100;
   await chrome.storage.local.set({ history });
 }
@@ -361,15 +393,9 @@ async function updateStatistics(provider, style) {
   stats.providers[provider] = (stats.providers[provider] || 0) + 1;
   stats.styles = stats.styles || {};
   stats.styles[style] = (stats.styles[style] || 0) + 1;
-
   const today = new Date().toDateString();
-  if (stats.lastDate !== today) {
-    stats.dailyCount = 1;
-    stats.lastDate = today;
-  } else {
-    stats.dailyCount = (stats.dailyCount || 0) + 1;
-  }
-
+  if (stats.lastDate !== today) { stats.dailyCount = 1; stats.lastDate = today; }
+  else { stats.dailyCount = (stats.dailyCount || 0) + 1; }
   await chrome.storage.local.set({ stats });
   updateDailyBadge(stats.dailyCount);
 }
