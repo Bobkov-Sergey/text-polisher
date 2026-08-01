@@ -5,7 +5,13 @@
 
   function applyThemeToFloatElements() {
     if (!floatBtn) return;
-    floatBtn.style.background = isDark ? '#0a84ff' : '#007aff';
+    if (isDark) {
+      floatBtn.style.background = 'linear-gradient(135deg, #0a84ff, #5e5ce6)';
+      floatBtn.style.boxShadow = '0 4px 15px rgba(10, 132, 255, 0.4)';
+    } else {
+      floatBtn.style.background = 'linear-gradient(135deg, #007aff, #5856d6)';
+      floatBtn.style.boxShadow = '0 4px 15px rgba(0, 122, 255, 0.3)';
+    }
   }
   darkMediaQuery.addEventListener('change', (e) => { isDark = e.matches; applyThemeToFloatElements(); });
 
@@ -14,14 +20,26 @@
     floatBtn = document.createElement('div');
     floatBtn.id = '__textPolisherFloatBtn';
     Object.assign(floatBtn.style, {
-      position: 'fixed', display: 'none', zIndex: '2147483647', background: '#007aff',
-      color: 'white', borderRadius: '8px', padding: '6px 12px',
+      position: 'fixed', display: 'none', zIndex: '2147483647',
+      background: 'linear-gradient(135deg, #007aff, #5856d6)',
+      color: 'white', borderRadius: '20px', padding: '8px 18px',
       fontFamily: '-apple-system, BlinkMacSystemFont, sans-serif', fontSize: '13px',
-      cursor: 'pointer', boxShadow: '0 4px 12px rgba(0,0,0,0.2)',
-      transition: 'opacity 0.2s', userSelect: 'none', whiteSpace: 'nowrap'
+      cursor: 'pointer', boxShadow: '0 4px 15px rgba(0,122,255,0.3)',
+      transition: 'opacity 0.2s, transform 0.2s, box-shadow 0.2s',
+      userSelect: 'none', whiteSpace: 'nowrap', fontWeight: '600',
+      letterSpacing: '-0.2px'
     });
-    floatBtn.textContent = 'Перефразировать';
+    floatBtn.textContent = '✨ Перефразировать';
     document.body.appendChild(floatBtn);
+
+    floatBtn.addEventListener('mouseenter', () => {
+      floatBtn.style.transform = 'scale(1.05)';
+      floatBtn.style.boxShadow = isDark ? '0 6px 20px rgba(10,132,255,0.5)' : '0 6px 20px rgba(0,122,255,0.4)';
+    });
+    floatBtn.addEventListener('mouseleave', () => {
+      floatBtn.style.transform = 'scale(1)';
+      applyThemeToFloatElements();
+    });
 
     floatBtn.addEventListener('click', (e) => {
       e.stopPropagation();
@@ -74,12 +92,11 @@
     const range = selection.getRangeAt(0); const rect = range.getBoundingClientRect();
     if (!rect || (rect.width === 0 && rect.height === 0)) { floatBtn.style.display = 'none'; return; }
     floatBtn.style.display = 'block';
-    floatBtn.style.left = Math.min(rect.right + 5, window.innerWidth - 150) + 'px';
-    floatBtn.style.top = Math.min(rect.top - 30, window.innerHeight - 40) + 'px';
+    floatBtn.style.left = Math.min(rect.right + 10, window.innerWidth - 180) + 'px';
+    floatBtn.style.top = Math.min(rect.top - 40, window.innerHeight - 50) + 'px';
   }
   function hideFloatButton() { if (floatBtn) floatBtn.style.display = 'none'; }
 
-  // Индикатор выполнения
   let progressBar = null;
   chrome.runtime.onMessage.addListener((message) => {
     if (message.action === "showProgress") {
@@ -100,7 +117,6 @@
   }
   function hideProgressBar() { if (progressBar) { progressBar.remove(); progressBar = null; } }
 
-  // Ctrl‑предпросмотр
   document.addEventListener('keydown', (e) => { if (e.key === 'Control' || e.key === 'Meta') ctrlKeyDown = true; });
   document.addEventListener('keyup', (e) => { if (e.key === 'Control' || e.key === 'Meta') { ctrlKeyDown = false; hideCtrlPreview(); } });
 
@@ -125,7 +141,6 @@
   }
   function hideCtrlPreview() { if (ctrlPreviewBox) ctrlPreviewBox.style.display = 'none'; }
 
-  // Слушаем выделение мыши
   document.addEventListener('mouseup', (e) => {
     setTimeout(() => {
       const selection = window.getSelection();
@@ -152,7 +167,6 @@
   document.addEventListener('mousedown', (e) => { if (floatBtn && !floatBtn.contains(e.target)) hideFloatButton(); });
   window.addEventListener('blur', () => { ctrlKeyDown = false; hideCtrlPreview(); });
 
-  // Функция замены текста (аналог фоновой)
   function replaceSelection(newText) {
     const activeEl = document.activeElement;
     if (activeEl && (activeEl.tagName === "TEXTAREA" || (activeEl.tagName === "INPUT" && activeEl.type === "text"))) {
@@ -175,7 +189,6 @@
     }
   }
 
-  // Звуковой сигнал
   function playCompletionSound() {
     try {
       const audioCtx = new (window.AudioContext || window.webkitAudioContext)();

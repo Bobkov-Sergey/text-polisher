@@ -1,14 +1,15 @@
 {
   "manifest_version": 3,
   "name": "Text Polisher",
-  "version": "2.0",
+  "version": "2.3",
   "description": "Перефразирует выделенный текст в выбранном стиле. Плавающая кнопка, предпросмотр по Ctrl, история, статистика.",
   "permissions": [
     "contextMenus",
     "storage",
     "activeTab",
     "scripting",
-    "notifications"
+    "notifications",
+    "clipboardRead"
   ],
   "background": {
     "service_worker": "background.js"

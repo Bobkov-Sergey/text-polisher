@@ -1,5 +1,6 @@
 const MENU_ID = "rephrase-text";
 
+// Стили
 const STYLES = {
   corporate: "Ты профессиональный редактор. Перефразируй следующий текст в корпоративном официальном стиле, строго сохраняя его исходный смысл. НЕ добавляй новых идей, не предлагай решений, не комментируй. Отвечай ТОЛЬКО перефразированным текстом без кавычек, пояснений и дополнительной информации.",
   neutral: "Ты профессиональный редактор. Перефразируй следующий текст в нейтральном, спокойном стиле, избегая крайностей, строго сохраняя его исходный смысл. НЕ добавляй новых идей, не предлагай решений, не комментируй. Отвечай ТОЛЬКО перефразированным текстом без кавычек, пояснений и дополнительной информации.",
@@ -84,10 +85,13 @@ async function ensureContextMenu() {
   } catch (e) {}
 }
 
-chrome.runtime.onInstalled.addListener(() => {
+chrome.runtime.onInstalled.addListener((details) => {
   ensureContextMenu();
   chrome.action.setBadgeBackgroundColor({ color: "#007aff" });
   updateDailyBadge();
+  if (details.reason === "install") {
+    chrome.tabs.create({ url: chrome.runtime.getURL("onboarding.html") });
+  }
 });
 
 chrome.runtime.onStartup.addListener(() => {
@@ -109,18 +113,19 @@ chrome.notifications.onButtonClicked.addListener((notificationId, buttonIndex) =
 
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   if (request.action === "rephrase") {
-    // Вызов из контент-скрипта – возвращаем результат без scripting.executeScript
-    processTextForContentScript(request.text, sender.tab.id, sendResponse);
+    processTextForContentScript(request.text, sender?.tab?.id, sendResponse);
     return true;
   }
   if (request.action === "preview") {
-    previewText(request.text, sender.tab.id)
+    previewText(request.text, sender?.tab?.id)
       .then(preview => sendResponse({ success: true, text: preview }))
       .catch(err => sendResponse({ success: false, error: err.message }));
     return true;
   }
   if (request.action === "showProgress") {
-    chrome.tabs.sendMessage(sender.tab.id, { action: "showProgress", visible: request.visible }).catch(() => {});
+    if (sender?.tab?.id) {
+      chrome.tabs.sendMessage(sender.tab.id, { action: "showProgress", visible: request.visible }).catch(() => {});
+    }
   }
 });
 
@@ -128,7 +133,6 @@ chrome.contextMenus.onClicked.addListener((info, tab) => {
   if (info.menuItemId === MENU_ID && info.selectionText) {
     const text = info.selectionText.trim();
     if (!text) return;
-    // Для контекстного меню – используем scripting (разрешение активно)
     processTextWithScripting(text, tab.id);
   }
 });
@@ -181,7 +185,6 @@ chrome.commands.onCommand.addListener((command, tab) => {
   }
 });
 
-// Версия для контент-скрипта: возвращает результат через sendResponse
 async function processTextForContentScript(text, tabId, sendResponse) {
   const settings = await getSettings();
   if (!settings.apiKey) {
@@ -204,8 +207,9 @@ async function processTextForContentScript(text, tabId, sendResponse) {
     return;
   }
 
-  // Включаем прогресс-бар
-  chrome.tabs.sendMessage(tabId, { action: "showProgress", visible: true }).catch(() => {});
+  if (tabId) {
+    chrome.tabs.sendMessage(tabId, { action: "showProgress", visible: true }).catch(() => {});
+  }
 
   try {
     const url = provider.buildUrl ? provider.buildUrl(settings.apiKey) : provider.url;
@@ -223,14 +227,8 @@ async function processTextForContentScript(text, tabId, sendResponse) {
     const data = await response.json();
     const rephrased = provider.parseResponse(data);
 
-    // Отправляем результат обратно в контент-скрипт
-    sendResponse({
-      success: true,
-      text: rephrased,
-      playSound: settings.soundEnabled
-    });
+    sendResponse({ success: true, text: rephrased, playSound: settings.soundEnabled });
 
-    // Сохраняем в историю и обновляем статистику
     saveToHistory(text, rephrased, settings.provider);
     updateStatistics(settings.provider, settings.style);
 
@@ -243,11 +241,12 @@ async function processTextForContentScript(text, tabId, sendResponse) {
     });
     sendResponse({ success: false, error: error.message });
   } finally {
-    chrome.tabs.sendMessage(tabId, { action: "showProgress", visible: false }).catch(() => {});
+    if (tabId) {
+      chrome.tabs.sendMessage(tabId, { action: "showProgress", visible: false }).catch(() => {});
+    }
   }
 }
 
-// Версия для контекстного меню и горячих клавиш (с scripting)
 async function processTextWithScripting(text, tabId) {
   const settings = await getSettings();
   if (!settings.apiKey) {
@@ -284,7 +283,6 @@ async function processTextWithScripting(text, tabId) {
     const data = await response.json();
     const rephrased = provider.parseResponse(data);
 
-    // Сохраняем оригинал и заменяем текст через scripting
     await chrome.scripting.executeScript({
       target: { tabId: tabId },
       func: () => { const sel = window.getSelection(); window._textPolisherOriginal = sel ? sel.toString() : ""; }
