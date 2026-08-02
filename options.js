@@ -18,7 +18,56 @@ document.addEventListener("DOMContentLoaded", () => {
   const statsContainer = document.getElementById("statsContainer");
   const feedbackBtn = document.getElementById("feedbackBtn");
   const pinBtn = document.getElementById("pinExtensionBtn");
+  const settingsSearch = document.getElementById("settingsSearch");
+  const settingsSearchClear = document.getElementById("settingsSearchClear");
 
+  // Модальное окно
+  const modal = document.getElementById("confirmModal");
+  const modalTitle = document.getElementById("confirmModalTitle");
+  const modalText = document.getElementById("confirmModalText");
+  const modalCancel = document.getElementById("confirmModalCancel");
+  const modalOk = document.getElementById("confirmModalOk");
+  let modalCallback = null;
+
+  function showModal(title, text, okText, callback) {
+    modalTitle.textContent = title;
+    modalText.textContent = text;
+    modalOk.textContent = okText || "Удалить";
+    modal.classList.add("active");
+    modalCallback = callback;
+  }
+
+  function hideModal() {
+    modal.classList.remove("active");
+    modalCallback = null;
+  }
+
+  modalCancel.addEventListener("click", hideModal);
+  modalOk.addEventListener("click", () => {
+    if (modalCallback) modalCallback();
+    hideModal();
+  });
+
+  // Ripple-эффект
+  function createRipple(event) {
+    const button = event.currentTarget;
+    const circle = document.createElement("span");
+    const diameter = Math.max(button.clientWidth, button.clientHeight);
+    const radius = diameter / 2;
+    const rect = button.getBoundingClientRect();
+    circle.style.width = circle.style.height = `${diameter}px`;
+    circle.style.left = `${event.clientX - rect.left - radius}px`;
+    circle.style.top = `${event.clientY - rect.top - radius}px`;
+    circle.classList.add("ripple");
+    button.appendChild(circle);
+    setTimeout(() => circle.remove(), 600);
+  }
+
+  document.querySelectorAll("button").forEach(btn => {
+    btn.addEventListener("click", createRipple);
+  });
+
+  // Вкладки
   const tabButtons = document.querySelectorAll(".sidebar-btn");
   const tabContents = document.querySelectorAll(".tab-content");
   tabButtons.forEach(btn => {
@@ -64,6 +113,61 @@ document.addEventListener("DOMContentLoaded", () => {
     }, 2500);
   }
 
+  // Поиск по настройкам + управление кнопкой очистки
+  function updateSearchClearButton() {
+    if (settingsSearch.value.length > 0) {
+      settingsSearchClear.classList.add("visible");
+    } else {
+      settingsSearchClear.classList.remove("visible");
+    }
+  }
+
+  settingsSearch.addEventListener("input", () => {
+    updateSearchClearButton();
+    const query = settingsSearch.value.toLowerCase();
+    const sections = document.querySelectorAll("#settingsTab .section[data-search]");
+    sections.forEach(section => {
+      const keywords = section.getAttribute("data-search") || "";
+      section.style.display = keywords.includes(query) || query === "" ? "" : "none";
+    });
+  });
+
+  settingsSearchClear.addEventListener("click", () => {
+    settingsSearch.value = "";
+    settingsSearch.dispatchEvent(new Event("input"));
+    settingsSearch.focus();
+  });
+
+  // Тултипы
+  let tooltipElement = null;
+  function showTooltip(text, x, y) {
+    if (!tooltipElement) {
+      tooltipElement = document.createElement('div');
+      tooltipElement.className = 'tooltip-popup';
+      document.body.appendChild(tooltipElement);
+    }
+    tooltipElement.textContent = text;
+    tooltipElement.style.left = x + 'px';
+    tooltipElement.style.top = (y - 30) + 'px';
+    tooltipElement.classList.add('visible');
+  }
+  function hideTooltip() {
+    if (tooltipElement) {
+      tooltipElement.classList.remove('visible');
+    }
+  }
+
+  document.querySelectorAll('.tip-icon').forEach(icon => {
+    icon.addEventListener('mouseenter', (e) => {
+      const text = icon.getAttribute('data-tooltip');
+      if (text) {
+        showTooltip(text, e.clientX, e.clientY);
+      }
+    });
+    icon.addEventListener('mouseleave', hideTooltip);
+  });
+
+  // Загрузка настроек
   chrome.storage.sync.get(["provider", "apiKey", "style", "historyEnabled", "soundEnabled", "groqApiKey"], (res) => {
     if (!res.provider && !res.apiKey && res.groqApiKey) {
       providerSelect.value = "groq"; apiKeyInput.value = res.groqApiKey;
@@ -79,15 +183,13 @@ document.addEventListener("DOMContentLoaded", () => {
 
   saveBtn.addEventListener("click", () => {
     const provider = providerSelect.value; const key = apiKeyInput.value.trim();
-    chrome.storage.sync.set({ provider, apiKey: key }, () => {
-      showToast("API ключ сохранён");
-    });
+    chrome.storage.sync.set({ provider, apiKey: key }, () => showToast("API ключ сохранён"));
   });
 
   clearKeyBtn.addEventListener("click", () => {
-    apiKeyInput.value = "";
-    chrome.storage.sync.remove("apiKey", () => {
-      showToast("Ключ удалён");
+    showModal("Очистить ключ?", "Вы уверены, что хотите удалить сохранённый API-ключ?", "Очистить", () => {
+      apiKeyInput.value = "";
+      chrome.storage.sync.remove("apiKey", () => showToast("Ключ удалён"));
     });
   });
 
@@ -111,21 +213,20 @@ document.addEventListener("DOMContentLoaded", () => {
 
   saveStyleBtn.addEventListener("click", () => {
     const style = styleSelect.value;
-    chrome.storage.sync.set({ style }, () => {
-      showToast("Стиль сохранён");
-    });
+    chrome.storage.sync.set({ style }, () => showToast("Стиль сохранён"));
   });
 
   historyEnabledCheck.addEventListener("change", () => chrome.storage.sync.set({ historyEnabled: historyEnabledCheck.checked }));
   soundEnabledCheck.addEventListener("change", () => chrome.storage.sync.set({ soundEnabled: soundEnabledCheck.checked }));
 
+  // История
   let historyData = [];
   function showHistorySkeleton() { historyList.innerHTML = '<div class="skeleton skeleton-line long"></div><div class="skeleton skeleton-line"></div><div class="skeleton skeleton-line short"></div>'; }
   function loadHistory() { showHistorySkeleton(); chrome.storage.local.get(["history"], (res) => { historyData = res.history || []; renderHistory(); }); }
   function renderHistory() {
     const query = (historySearch.value || "").toLowerCase();
     const filtered = historyData.filter(item => item.original.toLowerCase().includes(query) || item.rephrased.toLowerCase().includes(query) || (item.provider && item.provider.toLowerCase().includes(query)));
-    if (!filtered.length) { historyList.innerHTML = '<p style="color:#5f6368;">История пуста.</p>'; return; }
+    if (!filtered.length) { historyList.innerHTML = '<p style="color:var(--cr-secondary-text-color);">История пуста.</p>'; return; }
     historyList.innerHTML = filtered.map(item => `
       <div class="history-item" data-timestamp="${item.timestamp}">
         <button class="favorite-btn ${item.isFavorite ? 'active' : ''}" data-timestamp="${item.timestamp}">
@@ -139,7 +240,11 @@ document.addEventListener("DOMContentLoaded", () => {
   }
   function toggleFavorite(ts) { const item = historyData.find(i => i.timestamp === ts); if (!item) return; item.isFavorite = !item.isFavorite; chrome.storage.local.set({ history: historyData }, () => renderHistory()); }
   historySearch.addEventListener("input", renderHistory);
-  clearHistoryBtn.addEventListener("click", () => { chrome.storage.local.remove("history", () => { historyData = []; renderHistory(); }); });
+  clearHistoryBtn.addEventListener("click", () => {
+    showModal("Очистить историю?", "Все записи истории будут безвозвратно удалены.", "Очистить", () => {
+      chrome.storage.local.remove("history", () => { historyData = []; renderHistory(); });
+    });
+  });
   function downloadFile(content, filename, mimeType) { const blob = new Blob([content], { type: mimeType }); const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = filename; a.click(); URL.revokeObjectURL(a.href); }
   exportCSVBtn.addEventListener("click", () => { const csv = "timestamp,provider,original,rephrased\n" + historyData.map(i => `"${new Date(i.timestamp).toISOString()}","${i.provider}","${i.original.replace(/"/g,'""')}","${i.rephrased.replace(/"/g,'""')}"`).join("\n"); downloadFile(csv, "text-polisher-history.csv", "text/csv"); });
   exportJSONBtn.addEventListener("click", () => { downloadFile(JSON.stringify(historyData, null, 2), "text-polisher-history.json", "application/json"); });

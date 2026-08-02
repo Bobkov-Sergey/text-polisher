@@ -38,7 +38,7 @@
     button svg { width: 20px; height: 20px; fill: currentColor; }
     button.primary {
       background: #1a73e8; color: white; border-radius: 24px;
-      padding: 8px 24px; width: auto; height: 36px;
+      padding: 8px 24px; width: auto; height: auto;
       font-weight: 500; font-size: 14px;
     }
     button.primary:hover { background: #1765cc; }
@@ -46,7 +46,7 @@
     .char-count { font-size: 12px; color: #5f6368; margin-right: 8px; }
     .divider { border-top: 1px solid #e8eaed; }
     hr { border: none; border-top: 1px solid #e8eaed; margin: 0; }
-    .link { color: #1a73e8; cursor: pointer; text-decoration: none; font-size: 13px; }
+    .link { color: #1a73e8; cursor: pointer; text-decoration: none; font-size: 13px; display: inline-flex; align-items: center; }
     .spinner {
       display: inline-block; width: 18px; height: 18px;
       border: 2px solid rgba(0,0,0,0.2); border-top-color: #1a73e8;
@@ -101,7 +101,9 @@
       </button>
     </div>
     <div class="actions-right">
-      <a class="link" id="openSettings">Настройки</a>
+      <button id="openSettingsBtn" title="Настройки" style="width:36px;height:36px;">
+        <svg viewBox="0 0 24 24"><path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.33-.02-.64-.06-.94l2.02-1.58a.49.49 0 0 0 .12-.61l-1.92-3.32a.49.49 0 0 0-.59-.22l-2.38.96a7.07 7.07 0 0 0-1.62-.94l-.36-2.54a.48.48 0 0 0-.48-.41h-3.84a.48.48 0 0 0-.48.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.38-.96a.49.49 0 0 0-.59.22L2.88 10.8a.49.49 0 0 0 .12.61l2.02 1.58c-.04.3-.06.61-.06.94s.02.64.06.94l-2.02 1.58a.49.49 0 0 0-.12.61l1.92 3.32c.12.23.37.33.59.22l2.38-.96c.5.37 1.03.7 1.62.94l.36 2.54c.05.24.25.41.48.41h3.84c.24 0 .44-.17.48-.41l.36-2.54c.59-.24 1.13-.57 1.62-.94l2.38.96c.22.11.47.01.59-.22l1.92-3.32c.12-.23.08-.5-.12-.61l-2.02-1.58zM12 15.6A3.6 3.6 0 1 1 12 8.4a3.6 3.6 0 0 1 0 7.2z"/></svg>
+      </button>
     </div>
   </div>
   <script src="popup.js"></script>

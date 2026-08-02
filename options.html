@@ -4,112 +4,148 @@
   <meta charset="utf-8">
   <title>Настройки Text Polisher</title>
   <style>
+    :root {
+      --cr-primary-text-color: #202124;
+      --cr-secondary-text-color: #5f6368;
+      --cr-section-background: #fff;
+      --cr-page-background: #f1f3f4;
+      --cr-border-color: #dadce0;
+      --cr-hover-background: rgba(0,0,0,0.08);
+      --cr-active-background: rgba(26,115,232,0.08);
+      --cr-button-color: #1a73e8;
+      --cr-button-hover-color: #1666c1;
+      --cr-danger-color: #ea4335;
+      --cr-danger-hover-color: #d93025;
+      --cr-toggle-unchecked: #bdc1c6;
+      --cr-toggle-checked: #1a73e8;
+      --cr-sidebar-background: #e8eaed;
+      --cr-sidebar-active: rgba(26,115,232,0.08);
+      --cr-scrollbar-thumb: #dadce0;
+      --cr-scrollbar-thumb-hover: #bdc1c6;
+    }
+
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --cr-primary-text-color: #e8eaed;
+        --cr-secondary-text-color: #9aa0a6;
+        --cr-section-background: #292a2d;
+        --cr-page-background: #1e1e1e;
+        --cr-border-color: #5f6368;
+        --cr-hover-background: rgba(255,255,255,0.08);
+        --cr-active-background: rgba(138,180,248,0.12);
+        --cr-button-color: #8ab4f8;
+        --cr-button-hover-color: #aecbfa;
+        --cr-danger-color: #f28b82;
+        --cr-danger-hover-color: #f5a39a;
+        --cr-toggle-unchecked: #5f6368;
+        --cr-toggle-checked: #8ab4f8;
+        --cr-sidebar-background: #292a2d;
+        --cr-sidebar-active: rgba(138,180,248,0.12);
+        --cr-scrollbar-thumb: #5f6368;
+        --cr-scrollbar-thumb-hover: #7c8288;
+      }
+    }
+
     * { box-sizing: border-box; }
 
     body {
       font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
       margin: 0; padding: 0; height: 100vh; display: flex;
-      background: #f1f3f4;
-      color: #202124;
+      background: var(--cr-page-background);
+      color: var(--cr-primary-text-color);
       line-height: 1.5;
       -webkit-font-smoothing: antialiased;
-    }
-    @media (prefers-color-scheme: dark) {
-      body { background: #1e1e1e; color: #e8eaed; }
+      scrollbar-width: thin;
+      scrollbar-color: var(--cr-scrollbar-thumb) transparent;
     }
 
     .sidebar {
-      width: 240px;
-      background: #e8eaed;
-      padding: 16px 0;
+      width: 250px;
+      background: var(--cr-sidebar-background);
+      padding: 24px 0;
       display: flex;
       flex-direction: column;
-      box-shadow: inset -1px 0 0 rgba(0,0,0,0.08);
+      box-shadow: inset -1px 0 0 var(--cr-border-color);
       flex-shrink: 0;
     }
-    @media (prefers-color-scheme: dark) {
-      .sidebar {
-        background: #292a2d;
-        box-shadow: inset -1px 0 0 rgba(255,255,255,0.08);
-      }
+
+    .sidebar-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 0 20px 20px;
+      margin-bottom: 8px;
+      border-bottom: 1px solid var(--cr-border-color);
     }
-    .sidebar-btn {
-      background: transparent; border: none; padding: 10px 16px;
-      text-align: left; font-size: 14px; font-weight: 400;
-      color: #202124; cursor: pointer;
-      transition: background 0.15s;
-      display: flex; align-items: center; gap: 12px;
-      border-left: 3px solid transparent;
+    .sidebar-header img { width: 36px; height: 36px; }
+    .sidebar-header h2 {
+      font-size: 18px;
+      font-weight: 600;
       margin: 0;
-      border-radius: 0 8px 8px 0;
+      color: var(--cr-primary-text-color);
     }
-    .sidebar-btn svg { width: 20px; height: 20px; fill: #5f6368; }
-    .sidebar-btn:hover { background: rgba(0,0,0,0.08); }
+
+    .sidebar-btn {
+      background: transparent; border: none; padding: 12px 20px;
+      text-align: left; font-size: 15px; font-weight: 600;
+      color: var(--cr-primary-text-color); cursor: pointer;
+      transition: background 0.15s;
+      display: flex; align-items: center; gap: 14px;
+      border-left: 4px solid transparent;
+      margin: 0; border-radius: 0 8px 8px 0;
+      position: relative; overflow: hidden;
+    }
+    .sidebar-btn svg { width: 22px; height: 22px; fill: var(--cr-secondary-text-color); }
+    .sidebar-btn:hover { background: var(--cr-hover-background); }
     .sidebar-btn.active {
-      background: rgba(26,115,232,0.08);
-      color: #1a73e8;
-      border-left-color: #1a73e8;
-      font-weight: 500;
+      background: var(--cr-active-background);
+      color: var(--cr-button-color);
+      border-left-color: var(--cr-button-color);
+      font-weight: 700;
     }
-    .sidebar-btn.active svg { fill: #1a73e8; }
-    @media (prefers-color-scheme: dark) {
-      .sidebar-btn { color: #e8eaed; }
-      .sidebar-btn svg { fill: #9aa0a6; }
-      .sidebar-btn:hover { background: rgba(255,255,255,0.08); }
-      .sidebar-btn.active {
-        background: rgba(138,180,248,0.12);
-        color: #8ab4f8;
-        border-left-color: #8ab4f8;
-      }
-      .sidebar-btn.active svg { fill: #8ab4f8; }
-    }
+    .sidebar-btn.active svg { fill: var(--cr-button-color); }
 
     .content { flex: 1; padding: 24px 32px; overflow-y: auto; max-width: 680px; }
     .tab-content { display: none; }
     .tab-content.active { display: block; animation: fadeIn 0.15s ease; }
     @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 
-    .section {
-      background: #fff; border-radius: 8px;
-      padding: 20px; margin-bottom: 16px;
+    .settings-card {
+      background: var(--cr-section-background); border-radius: 8px;
       box-shadow: 0 1px 2px rgba(0,0,0,0.1), 0 2px 6px rgba(0,0,0,0.06);
+      overflow: hidden;
     }
-    @media (prefers-color-scheme: dark) {
-      .section { background: #292a2d; box-shadow: 0 1px 2px rgba(0,0,0,0.3), 0 2px 6px rgba(0,0,0,0.2); }
+
+    .section {
+      padding: 16px 20px;
+      border-bottom: 1px solid var(--cr-border-color);
+      transition: background 0.15s;
     }
-    label { display: block; margin-bottom: 6px; font-weight: 500; font-size: 13px; color: #5f6368; }
-    @media (prefers-color-scheme: dark) { label { color: #9aa0a6; } }
+    .section:last-child { border-bottom: none; }
+    .section.hidden { display: none; }
+
+    .hover-row { transition: background 0.15s; }
+    .hover-row:hover { background: var(--cr-hover-background); }
+
+    label { display: block; margin-bottom: 6px; font-weight: 500; font-size: 13px; color: var(--cr-secondary-text-color); }
     .label-with-tip { display: flex; align-items: center; gap: 6px; margin-bottom: 6px; }
-    .tooltip-trigger {
+
+    .tip-icon {
       display: inline-flex; align-items: center; justify-content: center;
       width: 16px; height: 16px; border-radius: 50%;
-      background: rgba(0,0,0,0.1); color: #5f6368;
+      background: var(--cr-hover-background); color: var(--cr-secondary-text-color);
       font-size: 11px; font-weight: 700; cursor: help;
-      position: relative; transition: background 0.2s;
+      position: relative;
     }
-    .tooltip-trigger:hover { background: rgba(0,0,0,0.2); }
-    .tooltip-trigger::after {
-      content: attr(data-tip);
-      position: absolute; bottom: calc(100% + 8px); left: 50%; transform: translateX(-50%);
-      background: #333; color: #fff; font-size: 12px; font-weight: 400;
-      padding: 6px 10px; border-radius: 6px; white-space: nowrap;
-      pointer-events: none; opacity: 0; transition: opacity 0.2s;
-    }
-    @media (prefers-color-scheme: dark) {
-      .tooltip-trigger { background: rgba(255,255,255,0.15); color: #9aa0a6; }
-      .tooltip-trigger:hover { background: rgba(255,255,255,0.25); }
-    }
-    .tooltip-trigger:hover::after { opacity: 1; }
-    .toggle-label { display: flex; align-items: center; gap: 10px; font-weight: 400; cursor: pointer; color: #202124; }
-    @media (prefers-color-scheme: dark) { .toggle-label { color: #e8eaed; } }
 
-    .toggle-switch {
-      position: relative; width: 40px; height: 24px; flex-shrink: 0;
-    }
+    .toggle-label { display: flex; align-items: center; gap: 10px; font-weight: 400; cursor: pointer; color: var(--cr-primary-text-color); }
+    .toggle-text { flex: 1; }
+
+    .toggle-switch { position: relative; width: 40px; height: 24px; flex-shrink: 0; }
     .toggle-switch input { opacity: 0; width: 0; height: 0; position: absolute; }
     .slider {
       position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0;
-      background-color: #bdc1c6; transition: background-color 0.2s ease;
+      background-color: var(--cr-toggle-unchecked); transition: background-color 0.2s ease;
       border-radius: 24px;
     }
     .slider:before {
@@ -118,59 +154,44 @@
       transition: transform 0.2s ease; border-radius: 50%;
       box-shadow: 0 1px 3px rgba(0,0,0,0.2);
     }
-    input:checked + .slider {
-      background-color: #1a73e8;
-    }
-    input:checked + .slider:before {
-      transform: translateX(16px);
-    }
-    @media (prefers-color-scheme: dark) {
-      .slider { background-color: #5f6368; }
-      input:checked + .slider { background-color: #8ab4f8; }
-    }
+    input:checked + .slider { background-color: var(--cr-toggle-checked); }
+    input:checked + .slider:before { transform: translateX(16px); }
 
     select, input[type="text"], input[type="password"], input[type="search"] {
       width: 100%; padding: 8px 12px; margin-bottom: 10px;
-      border: 1px solid #dadce0; border-radius: 6px;
-      background: #fff; color: #202124;
-      font-size: 14px; transition: border-color 0.15s;
+      border: 1px solid var(--cr-border-color); border-radius: 6px;
+      background: var(--cr-section-background); color: var(--cr-primary-text-color);
+      font-size: 14px; transition: background 0.15s, border-color 0.15s;
     }
-    @media (prefers-color-scheme: dark) {
-      select, input { background: #1e1e1e; border-color: #5f6368; color: #e8eaed; }
+    select:hover, input[type="text"]:hover, input[type="password"]:hover, input[type="search"]:hover {
+      background: var(--cr-hover-background);
     }
-    select:focus, input:focus { outline: none; border-color: #1a73e8; box-shadow: 0 0 0 2px rgba(26,115,232,0.2); }
+    select:focus, input:focus { outline: none; border-color: var(--cr-button-color); box-shadow: 0 0 0 2px rgba(26,115,232,0.2); }
 
     button {
-      background: #1a73e8; color: white; border: none; padding: 8px 16px; border-radius: 6px;
+      background: var(--cr-button-color); color: white; border: none; padding: 8px 16px; border-radius: 6px;
       cursor: pointer; font-size: 13px; font-weight: 500; margin-right: 8px; margin-bottom: 8px;
       transition: background 0.15s; display: inline-flex; align-items: center; gap: 6px;
-      height: 36px;
+      height: 36px; position: relative; overflow: hidden;
     }
-    button:hover { background: #1666c1; }
-    button.secondary { background: #e8eaed; color: #202124; }
-    button.secondary:hover { background: #dadce0; }
-    button.danger { background: #ea4335; }
-    button.danger:hover { background: #d93025; }
-    @media (prefers-color-scheme: dark) {
-      button.secondary { background: #3c4043; color: #e8eaed; }
-      button.secondary:hover { background: #4a4d52; }
-    }
+    button:hover { background: var(--cr-button-hover-color); }
+    button.secondary { background: var(--cr-hover-background); color: var(--cr-primary-text-color); }
+    button.secondary:hover { background: var(--cr-border-color); }
+    button.danger { background: var(--cr-danger-color); }
+    button.danger:hover { background: var(--cr-danger-hover-color); }
 
-    .help-text { font-size: 12px; color: #5f6368; margin-top: 4px; }
-    .help-text a { color: #1a73e8; text-decoration: none; }
-    @media (prefers-color-scheme: dark) { .help-text { color: #9aa0a6; } .help-text a { color: #8ab4f8; } }
-    .shortcut { background: #e8eaed; padding: 2px 6px; border-radius: 4px; font-family: monospace; font-size: 12px; color: #202124; }
-    @media (prefers-color-scheme: dark) { .shortcut { background: #3c4043; color: #e8eaed; } }
+    .help-text { font-size: 12px; color: var(--cr-secondary-text-color); margin-top: 4px; }
+    .help-text a { color: var(--cr-button-color); text-decoration: none; }
+    .shortcut { background: var(--cr-hover-background); padding: 2px 6px; border-radius: 4px; font-family: monospace; font-size: 12px; color: var(--cr-primary-text-color); }
     .row { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin-bottom: 2px; }
-    .skeleton { background: linear-gradient(90deg, #e8eaed 25%, #f1f3f4 50%, #e8eaed 75%); background-size: 200% 100%; animation: shimmer 1.5s infinite; border-radius: 6px; }
-    @media (prefers-color-scheme: dark) { .skeleton { background: linear-gradient(90deg, #3c4043 25%, #4a4d52 50%, #3c4043 75%); } }
+    .skeleton { background: linear-gradient(90deg, var(--cr-border-color) 25%, var(--cr-page-background) 50%, var(--cr-border-color) 75%); background-size: 200% 100%; animation: shimmer 1.5s infinite; border-radius: 6px; }
     @keyframes shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
     .skeleton-line { height: 14px; margin-bottom: 8px; }
     .skeleton-line.short { width: 60%; }
     .skeleton-line.long { width: 80%; }
-    .history-item { border-bottom: 1px solid #e8eaed; padding: 12px 0; font-size: 13px; display: flex; align-items: flex-start; gap: 8px; color: #202124; }
+    .history-item { border-bottom: 1px solid var(--cr-border-color); padding: 12px 0; font-size: 13px; display: flex; align-items: flex-start; gap: 8px; color: var(--cr-primary-text-color); }
     .history-item:last-child { border-bottom: none; }
-    .history-meta { font-size: 11px; color: #5f6368; margin-bottom: 2px; }
+    .history-meta { font-size: 11px; color: var(--cr-secondary-text-color); margin-bottom: 2px; }
     .history-content { flex: 1; }
 
     .favorite-btn {
@@ -179,51 +200,104 @@
       outline: none; box-shadow: none; width: 28px; height: 28px; border-radius: 50%;
       transition: background 0.15s;
     }
-    .favorite-btn:hover { background: rgba(0,0,0,0.08); }
-    .favorite-btn svg { width: 20px; height: 20px; fill: #dadce0; transition: fill 0.15s; }
+    .favorite-btn:hover { background: var(--cr-hover-background); }
+    .favorite-btn svg { width: 20px; height: 20px; fill: var(--cr-border-color); transition: fill 0.15s; }
     .favorite-btn.active svg { fill: #f9ab00; }
-    @media (prefers-color-scheme: dark) {
-      .history-item { color: #e8eaed; border-color: #3c4043; }
-      .history-meta { color: #9aa0a6; }
-      .favorite-btn svg { fill: #5f6368; }
-      .favorite-btn.active svg { fill: #f9ab00; }
-      .favorite-btn:hover { background: rgba(255,255,255,0.08); }
-    }
-    .about-text { font-size: 14px; line-height: 1.6; color: #202124; }
-    .about-text h3 { margin-top: 24px; font-size: 16px; display: flex; align-items: center; gap: 8px; color: #202124; }
+
+    .about-text { font-size: 14px; line-height: 1.6; color: var(--cr-primary-text-color); }
+    .about-text h3 { margin-top: 24px; font-size: 16px; display: flex; align-items: center; gap: 8px; color: var(--cr-primary-text-color); }
     .about-text ul { padding-left: 20px; margin-top: 8px; }
     .about-text li { margin-bottom: 6px; }
-    @media (prefers-color-scheme: dark) {
-      .about-text { color: #e8eaed; }
-      .about-text h3 { color: #e8eaed; }
-    }
-    .spinner { display: inline-block; width: 16px; height: 16px; border: 2px solid rgba(0,0,0,0.2); border-top-color: #1a73e8; border-radius: 50%; animation: spin 0.7s linear infinite; vertical-align: middle; }
+
+    .spinner { display: inline-block; width: 16px; height: 16px; border: 2px solid rgba(0,0,0,0.2); border-top-color: var(--cr-button-color); border-radius: 50%; animation: spin 0.7s linear infinite; vertical-align: middle; }
     @keyframes spin { to { transform: rotate(360deg); } }
 
-    .test-conn-wrapper {
-      display: inline-flex; align-items: center; gap: 4px;
-    }
-    .test-conn-icon {
-      width: 16px; height: 16px; flex-shrink: 0;
-    }
+    .ripple { position: absolute; border-radius: 50%; transform: scale(0); animation: ripple 0.6s linear; background: rgba(255,255,255,0.5); pointer-events: none; }
+    @keyframes ripple { to { transform: scale(4); opacity: 0; } }
 
-    ::-webkit-scrollbar { width: 8px; }
+    .modal-overlay {
+      position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center;
+      z-index: 10000; opacity: 0; pointer-events: none; transition: opacity 0.2s;
+    }
+    .modal-overlay.active { opacity: 1; pointer-events: auto; }
+    .modal {
+      background: var(--cr-section-background); border-radius: 8px; padding: 24px;
+      max-width: 400px; width: 100%; box-shadow: 0 8px 24px rgba(0,0,0,0.3);
+      color: var(--cr-primary-text-color);
+    }
+    .modal h3 { margin-top: 0; }
+    .modal-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 16px; }
+
+    .tooltip-popup {
+      position: fixed;
+      background: #333;
+      color: #fff;
+      padding: 6px 10px;
+      border-radius: 6px;
+      font-size: 12px;
+      font-weight: 400;
+      z-index: 10001;
+      pointer-events: none;
+      white-space: nowrap;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+      opacity: 0;
+      transition: opacity 0.15s;
+    }
+    .tooltip-popup.visible { opacity: 1; }
+
+    ::-webkit-scrollbar { width: 6px; }
     ::-webkit-scrollbar-track { background: transparent; }
-    ::-webkit-scrollbar-thumb { background: #dadce0; border-radius: 4px; }
-    ::-webkit-scrollbar-thumb:hover { background: #bdc1c6; }
-    @media (prefers-color-scheme: dark) {
-      ::-webkit-scrollbar-thumb { background: #5f6368; }
-      ::-webkit-scrollbar-thumb:hover { background: #7c8288; }
-    }
+    ::-webkit-scrollbar-thumb { background: var(--cr-scrollbar-thumb); border-radius: 3px; }
+    ::-webkit-scrollbar-thumb:hover { background: var(--cr-scrollbar-thumb-hover); }
 
-    #statsTab h3 { color: #202124; }
-    @media (prefers-color-scheme: dark) {
-      #statsTab h3 { color: #e8eaed; }
+    .search-wrapper {
+      position: relative;
+      margin-bottom: 16px;
+    }
+    .search-wrapper input[type="search"] {
+      padding-right: 32px;
+      margin-bottom: 0;
+    }
+    .search-wrapper input[type="search"]::-webkit-search-cancel-button {
+      display: none;
+    }
+    .search-clear-btn {
+      position: absolute;
+      right: 4px;
+      top: 50%;
+      transform: translateY(-50%);
+      background: none;
+      border: none;
+      cursor: pointer;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 4px;
+      border-radius: 50%;
+      color: var(--cr-secondary-text-color);
+      width: 24px;
+      height: 24px;
+    }
+    .search-clear-btn:hover {
+      background: var(--cr-hover-background);
+    }
+    .search-clear-btn.visible {
+      display: flex;
+    }
+    .search-clear-btn svg {
+      width: 16px;
+      height: 16px;
+      fill: currentColor;
     }
   </style>
 </head>
 <body>
   <div class="sidebar">
+    <div class="sidebar-header">
+      <img src="icon48.png" alt="Text Polisher">
+      <h2>Text Polisher</h2>
+    </div>
     <button class="sidebar-btn active" data-tab="settingsTab">
       <svg viewBox="0 0 24 24"><path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.33-.02-.64-.06-.94l2.02-1.58a.49.49 0 0 0 .12-.61l-1.92-3.32a.49.49 0 0 0-.59-.22l-2.38.96a7.07 7.07 0 0 0-1.62-.94l-.36-2.54a.48.48 0 0 0-.48-.41h-3.84a.48.48 0 0 0-.48.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.38-.96a.49.49 0 0 0-.59.22L2.88 10.8a.49.49 0 0 0 .12.61l2.02 1.58c-.04.3-.06.61-.06.94s.02.64.06.94l-2.02 1.58a.49.49 0 0 0-.12.61l1.92 3.32c.12.23.37.33.59.22l2.38-.96c.5.37 1.03.7 1.62.94l.36 2.54c.05.24.25.41.48.41h3.84c.24 0 .44-.17.48-.41l.36-2.54c.59-.24 1.13-.57 1.62-.94l2.38.96c.22.11.47.01.59-.22l1.92-3.32c.12-.23.08-.5-.12-.61l-2.02-1.58zM12 15.6A3.6 3.6 0 1 1 12 8.4a3.6 3.6 0 0 1 0 7.2z"/></svg>
       Настройки
@@ -243,40 +317,54 @@
   </div>
   <div class="content">
     <div id="settingsTab" class="tab-content active">
-      <div class="section">
-        <div class="label-with-tip"><label>AI-сервис</label><span class="tooltip-trigger" data-tip="Выберите нейросеть">?</span></div>
-        <select id="provider"><option value="groq">Groq</option><option value="openai">OpenAI</option><option value="deepseek">DeepSeek</option><option value="gemini">Gemini</option></select>
+      <div class="search-wrapper">
+        <input type="search" id="settingsSearch" placeholder="Поиск по настройкам">
+        <button class="search-clear-btn" id="settingsSearchClear" title="Очистить">
+          <svg viewBox="0 0 24 24"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
       </div>
-      <div class="section">
-        <div class="label-with-tip"><label>API ключ</label><span class="tooltip-trigger" data-tip="Ключ с сайта сервиса">?</span></div>
-        <input type="password" id="apiKey" placeholder="Вставьте ключ" style="margin-bottom:8px;">
-        <div class="row">
-          <button id="saveBtn"><svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M17 3H5c-1.11 0-2 .9-2 2v14c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V7l-4-4zm-5 16c-1.66 0-3-1.34-3-3s1.34-3 3-3 3 1.34 3 3-1.34 3-3 3zm3-10H5V5h10v4z"/></svg> Сохранить</button>
-          <button id="clearKeyBtn" class="danger"><svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/></svg> Очистить</button>
-          <button id="testConnBtn" class="secondary test-conn-wrapper">
-            <span id="testConnIcon" class="test-conn-icon"><svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5 6.5 6.5 0 0 0 9.5 3C6.08 3 3.28 5.64 3.03 9h2.02C5.3 6.75 7.18 5 9.5 5 11.99 5 14 7.01 14 9.5S11.99 14 9.5 14c-.17 0-.33-.03-.5-.05v2.02c.17.02.33.03.5.03 1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5z"/></svg></span>
-            <span>Проверить соединение</span>
-            <span id="testConnSpinner" style="display:none" class="spinner test-conn-icon"></span>
+      <div class="settings-card">
+        <div class="section" data-search="ai сервис нейросеть провайдер">
+          <div class="label-with-tip"><label>AI-сервис</label><span class="tip-icon" data-tooltip="Выберите нейросеть для перефразирования текста">?</span></div>
+          <select id="provider"><option value="groq">Groq</option><option value="openai">OpenAI</option><option value="deepseek">DeepSeek</option><option value="gemini">Gemini</option></select>
+        </div>
+        <div class="section" data-search="api ключ токен авторизация">
+          <div class="label-with-tip"><label>API ключ</label><span class="tip-icon" data-tooltip="API-ключ выбранного сервиса">?</span></div>
+          <input type="password" id="apiKey" placeholder="Вставьте ключ" style="margin-bottom:8px;">
+          <div class="row">
+            <button id="saveBtn"><svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M17 3H5c-1.11 0-2 .9-2 2v14c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V7l-4-4zm-5 16c-1.66 0-3-1.34-3-3s1.34-3 3-3 3 1.34 3 3-1.34 3-3 3zm3-10H5V5h10v4z"/></svg> Сохранить</button>
+            <button id="clearKeyBtn" class="danger"><svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/></svg> Очистить</button>
+            <button id="testConnBtn" class="secondary test-conn-wrapper">
+              <span id="testConnIcon" class="test-conn-icon"><svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5 6.5 6.5 0 0 0 9.5 3C6.08 3 3.28 5.64 3.03 9h2.02C5.3 6.75 7.18 5 9.5 5 11.99 5 14 7.01 14 9.5S11.99 14 9.5 14c-.17 0-.33-.03-.5-.05v2.02c.17.02.33.03.5.03 1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5z"/></svg></span>
+              <span>Проверить соединение</span>
+              <span id="testConnSpinner" style="display:none" class="spinner test-conn-icon"></span>
+            </button>
+          </div>
+          <div class="help-text">Получить ключ: <a href="https://console.groq.com/keys" target="_blank">Groq</a> · <a href="https://platform.openai.com/api-keys" target="_blank">OpenAI</a> · <a href="https://platform.deepseek.com/api_keys" target="_blank">DeepSeek</a> · <a href="https://makersuite.google.com/app/apikey" target="_blank">Gemini</a></div>
+        </div>
+        <div class="section" data-search="стиль перефразирования тон">
+          <div class="label-with-tip"><label>Стиль</label><span class="tip-icon" data-tooltip="Тон перефразирования текста">?</span></div>
+          <select id="style" style="margin-bottom:8px"><option value="corporate">Корпоративный</option><option value="neutral">Нейтральный</option><option value="friendly">Дружеский</option><option value="concise">Лаконичный</option><option value="persuasive">Убедительный</option></select>
+          <button id="saveStyleBtn"><svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M17 3H5c-1.11 0-2 .9-2 2v14c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V7l-4-4zm-5 16c-1.66 0-3-1.34-3-3s1.34-3 3-3 3 1.34 3 3-1.34 3-3 3zm3-10H5V5h10v4z"/></svg> Сохранить стиль</button>
+        </div>
+        <div class="section hover-row" data-search="история сохранять">
+          <label class="toggle-label">
+            <span class="toggle-text">Сохранять историю</span>
+            <span class="toggle-switch"><input type="checkbox" id="historyEnabled" checked><span class="slider"></span></span>
+          </label>
+        </div>
+        <div class="section hover-row" data-search="звук сигнал завершение">
+          <label class="toggle-label">
+            <span class="toggle-text">Звуковой сигнал</span>
+            <span class="toggle-switch"><input type="checkbox" id="soundEnabled" checked><span class="slider"></span></span>
+          </label>
+        </div>
+        <div class="section" data-search="закрепить панель инструментов">
+          <button id="pinExtensionBtn">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M16 12V4h1V2H7v2h1v8l-2 2v2h5.2v6h1.6v-6H18v-2l-2-2z"/></svg>
+            Закрепить на панели инструментов
           </button>
         </div>
-        <div class="help-text">Получить ключ: <a href="https://console.groq.com/keys" target="_blank">Groq</a> · <a href="https://platform.openai.com/api-keys" target="_blank">OpenAI</a> · <a href="https://platform.deepseek.com/api_keys" target="_blank">DeepSeek</a> · <a href="https://makersuite.google.com/app/apikey" target="_blank">Gemini</a></div>
-      </div>
-      <div class="section">
-        <div class="label-with-tip"><label>Стиль</label><span class="tooltip-trigger" data-tip="Тон перефразирования">?</span></div>
-        <select id="style" style="margin-bottom:8px"><option value="corporate">Корпоративный</option><option value="neutral">Нейтральный</option><option value="friendly">Дружеский</option><option value="concise">Лаконичный</option><option value="persuasive">Убедительный</option></select>
-        <button id="saveStyleBtn"><svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M17 3H5c-1.11 0-2 .9-2 2v14c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V7l-4-4zm-5 16c-1.66 0-3-1.34-3-3s1.34-3 3-3 3 1.34 3 3-1.34 3-3 3zm3-10H5V5h10v4z"/></svg> Сохранить стиль</button>
-      </div>
-      <div class="section">
-        <label class="toggle-label"><svg viewBox="0 0 24 24" width="18" height="18" fill="#5f6368"><path d="M13 3a9 9 0 0 0-9 9H1l3.89 3.89.07.14L9 12H6c0-3.87 3.13-7 7-7s7 3.13 7 7-3.13 7-7 7c-1.93 0-3.68-.79-4.94-2.06l-1.42 1.42A8.954 8.954 0 0 0 13 21a9 9 0 0 0 0-18zm-1 5v5l4.28 2.54.72-1.21-3.5-2.08V8H12z"/></svg> Сохранять историю <span class="toggle-switch"><input type="checkbox" id="historyEnabled" checked><span class="slider"></span></span></label>
-      </div>
-      <div class="section">
-        <label class="toggle-label"><svg viewBox="0 0 24 24" width="18" height="18" fill="#5f6368"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/></svg> Звуковой сигнал <span class="toggle-switch"><input type="checkbox" id="soundEnabled" checked><span class="slider"></span></span></label>
-      </div>
-      <div class="section">
-        <button id="pinExtensionBtn">
-          <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M16 12V4h1V2H7v2h1v8l-2 2v2h5.2v6h1.6v-6H18v-2l-2-2z"/></svg>
-          Закрепить на панели инструментов
-        </button>
       </div>
     </div>
     <div id="historyTab" class="tab-content">
@@ -295,7 +383,7 @@
     <div id="statsTab" class="tab-content">
       <div class="section">
         <h3 style="display: flex; align-items: center; gap: 8px; font-size: 16px;">
-          <svg viewBox="0 0 24 24" width="22" height="22" fill="#5f6368"><path d="M9 17H7v-7h2v7zm4 0h-2V7h2v10zm4 0h-2v-4h2v4zm2 2H5V5h14v14zm0-16H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2z"/></svg>
+          <svg viewBox="0 0 24 24" width="22" height="22" fill="var(--cr-secondary-text-color)"><path d="M9 17H7v-7h2v7zm4 0h-2V7h2v10zm4 0h-2v-4h2v4zm2 2H5V5h14v14zm0-16H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2z"/></svg>
           Статистика
         </h3>
         <div id="statsContainer"></div>
@@ -306,17 +394,9 @@
         <div class="about-text">
           <h3><img src="icon48.png" width="32" height="32" alt=""> Text Polisher</h3>
           <p>Расширение для Chrome, которое перефразирует выделенный текст в выбранном стиле (Groq, OpenAI, DeepSeek, Gemini).</p>
-
-          <h3>
-            <svg viewBox="0 0 24 24" width="20" height="20" fill="#5f6368"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/></svg>
-            Как использовать
-          </h3>
+          <h3><svg viewBox="0 0 24 24" width="20" height="20" fill="var(--cr-secondary-text-color)"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/></svg> Как использовать</h3>
           <ul><li>Выделите текст в поле ввода.</li><li>Плавающая кнопка или правая кнопка мыши → «Перефразировать».</li><li>Горячие клавиши: <span class="shortcut">Ctrl+Shift+P</span> / <span class="shortcut">⌘⇧P</span>.</li><li>Предпросмотр по <span class="shortcut">Ctrl</span> / <span class="shortcut">⌘</span>.</li><li>Настройки: AI-сервис, ключ, стиль, история, звук.</li></ul>
-
-          <h3>
-            <svg viewBox="0 0 24 24" width="20" height="20" fill="#5f6368"><path d="M13 3a9 9 0 0 0-9 9H1l3.89 3.89.07.14L9 12H6c0-3.87 3.13-7 7-7s7 3.13 7 7-3.13 7-7 7c-1.93 0-3.68-.79-4.94-2.06l-1.42 1.42A8.954 8.954 0 0 0 13 21a9 9 0 0 0 0-18zm-1 5v5l4.28 2.54.72-1.21-3.5-2.08V8H12z"/></svg>
-            История версий
-          </h3>
+          <h3><svg viewBox="0 0 24 24" width="20" height="20" fill="var(--cr-secondary-text-color)"><path d="M13 3a9 9 0 0 0-9 9H1l3.89 3.89.07.14L9 12H6c0-3.87 3.13-7 7-7s7 3.13 7 7-3.13 7-7 7c-1.93 0-3.68-.79-4.94-2.06l-1.42 1.42A8.954 8.954 0 0 0 13 21a9 9 0 0 0 0-18zm-1 5v5l4.28 2.54.72-1.21-3.5-2.08V8H12z"/></svg> История версий</h3>
           <ul>
             <li><strong>v2.3</strong> – боковое меню, нативный стиль Chrome, SVG-иконки.</li>
             <li><strong>v2.2</strong> – тумблеры в стиле Chrome, мастер настройки.</li>
@@ -325,11 +405,7 @@
             <li><strong>v1.1</strong> – выбор AI, стили, автотёмная тема, кнопка очистки ключа, проверка соединения.</li>
             <li><strong>v1.0</strong> – базовая версия с контекстным меню и горячими клавишами.</li>
           </ul>
-
-          <h3>
-            <svg viewBox="0 0 24 24" width="20" height="20" fill="#5f6368"><path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm0 14H5.17L4 17.17V4h16v12z"/></svg>
-            Обратная связь
-          </h3>
+          <h3><svg viewBox="0 0 24 24" width="20" height="20" fill="var(--cr-secondary-text-color)"><path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm0 14H5.17L4 17.17V4h16v12z"/></svg> Обратная связь</h3>
           <button id="feedbackBtn">
             <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0 0 24 12c0-6.63-5.37-12-12-12z"/></svg>
             GitHub
@@ -338,6 +414,18 @@
       </div>
     </div>
   </div>
+
+  <div class="modal-overlay" id="confirmModal">
+    <div class="modal">
+      <h3 id="confirmModalTitle">Подтвердите действие</h3>
+      <p id="confirmModalText"></p>
+      <div class="modal-actions">
+        <button class="secondary" id="confirmModalCancel">Отмена</button>
+        <button id="confirmModalOk">Удалить</button>
+      </div>
+    </div>
+  </div>
+
   <script src="options.js"></script>
 </body>
 </html>
